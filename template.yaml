@@ -1,49 +1,56 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   alareti-backend
 
   Sample SAM Template for alareti-backend
-  
+
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Timeout: 3
+  Api:
+    Domain:
+      DomainName: api.alareti.com
+      CertificateArn: arn:aws:acm:us-east-1:412300612718:certificate/41d70bf6-a4fc-4f59-ad53-e6fe7f5977b9
+      EndpointConfiguration: EDGE
+      Route53:
+        HostedZoneId: Z09072943K0AKRQO3BPOF
 
 Resources:
-  HelloWorldFunction:
+  WebhookFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: hello-world/
+      CodeUri: webhook/
       Handler: app.lambdaHandler
       Runtime: nodejs18.x
       Architectures:
         - x86_64
       Events:
-        HelloWorld:
+        Webhook:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
-            Path: /hello
-            Method: get
+            Path: /webhook
+            Method: post
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
         Target: "es2020"
         Sourcemap: true
-        EntryPoints: 
-        - app.ts
+        EntryPoints:
+          - app.ts
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+  WebhookApi:
+    Description: "API Gateway endpoint URL for Prod stage for Webhook function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+  WebhookFunction:
+    Description: "Webhook Lambda Function ARN"
+    Value: !GetAtt WebhookFunction.Arn
+  WebhookFunctionIamRole:
+    Description: "Implicit IAM Role created for Webhook function"
+    Value: !GetAtt WebhookFunctionRole.Arn
