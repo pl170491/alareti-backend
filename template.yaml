@@ -5,10 +5,15 @@ Description: >
 
   Sample SAM Template for alareti-backend
 
+Mappings:
+  env:
+    url:
+      wikiUrl: https://api.alareti.com/wiki
+
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 3
+    Timeout: 10
   Api:
     Domain:
       DomainName: api.alareti.com
@@ -18,20 +23,36 @@ Globals:
         HostedZoneId: Z09072943K0AKRQO3BPOF
 
 Resources:
+  WikiArtifactBucket:
+    Type: AWS::S3::Bucket
+  WikiRepoCreatedTable:
+    Type: AWS::Serverless::SimpleTable
   WebhookFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: webhook/
+      CodeUri: webhook
       Handler: app.lambdaHandler
       Runtime: nodejs18.x
+      # Layers:
+      #   - arn:aws:lambda:us-east-2:590474943231:layer:AWS-Parameters-and-Secrets-Lambda-Extension:4
       Architectures:
         - x86_64
       Events:
-        Webhook:
+        WebhookPost:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /webhook
             Method: post
+      Environment:
+        Variables:
+          WIKI_REPO_CREATED_TABLE_NAME: !Ref WikiRepoCreatedTable
+          WIKI_URL: !FindInMap [env, url, wikiUrl]
+          WIKI_ARTIFACT_BUCKET_NAME: !Ref WikiArtifactBucket
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref WikiRepoCreatedTable
+        - S3CrudPolicy:
+            BucketName: !Ref WikiArtifactBucket
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -40,17 +61,86 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - app.ts
-
-Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  WebhookApi:
-    Description: "API Gateway endpoint URL for Prod stage for Webhook function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  WebhookFunction:
-    Description: "Webhook Lambda Function ARN"
-    Value: !GetAtt WebhookFunction.Arn
-  WebhookFunctionIamRole:
-    Description: "Implicit IAM Role created for Webhook function"
-    Value: !GetAtt WebhookFunctionRole.Arn
+  CreateWikiArticleFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: wiki-create
+      Handler: app.lambdaHandler
+      Runtime: nodejs18.x
+      # Layers:
+      #   - arn:aws:lambda:us-east-2:590474943231:layer:AWS-Parameters-and-Secrets-Lambda-Extension:4
+      Architectures:
+        - x86_64
+      Events:
+        CreateWikiArticlePost:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /wiki
+            Method: post
+        CreateWikiArticleOptions:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /wiki
+            Method: options
+      Policies:
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: arn:aws:secretsmanager:us-east-2:412300612718:secret:alareti-githubapp-EAm75b
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+          - app.ts
+  DeleteWikiArticleFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: wiki-article-delete
+      Handler: app.lambdaHandler
+      Runtime: nodejs18.x
+      # Layers:
+      #   - arn:aws:lambda:us-east-2:590474943231:layer:AWS-Parameters-and-Secrets-Lambda-Extension:4
+      Architectures:
+        - x86_64
+      Events:
+        DeleteWikiArticleDelete:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /wiki/{article}
+            Method: delete
+        DeleteWikiArticleOptions:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /wiki/{article}
+            Method: options
+      Policies:
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: arn:aws:secretsmanager:us-east-2:412300612718:secret:alareti-githubapp-EAm75b
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+          - app.ts
+# Outputs:
+# ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+# Find out more about other implicit resources you can reference within SAM
+# https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+# Api:
+#   Description: "API Gateway endpoint URL for Prod stage for lambda functions"
+#   Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+# WebhookFunction:
+#   Description: "Webhook Lambda Function ARN"
+#   Value: !GetAtt WebhookFunction.Arn
+# WebhookFunctionIamRole:
+#   Description: "Implicit IAM Role created for Webhook function"
+#   Value: !GetAtt WebhookFunctionRole.Arn
+# GetWikiArticleFunction:
+#   Description: "GetWikiArticleFunction ARN"
+#   Value: !GetAtt GetWikiArticleFunction.Arn
+# GetWikiArticleFunctionIamRole:
+#   Description: "Implicit IAM Role created for GetWikiArticleFunction"
+#   Value: !GetAtt GetWikiArticleFunctionRole.Arn

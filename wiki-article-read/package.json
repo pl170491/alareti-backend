@@ -1,26 +1,20 @@
 {
-  "name": "webhook",
+  "name": "wiki-get-article",
   "version": "1.0.0",
-  "description": "lambda for github webhook",
+  "description": "",
   "main": "app.js",
-  "repository": "https://github.com/awslabs/aws-sam-cli/tree/develop/samcli/local/init/templates/cookiecutter-aws-sam-hello-nodejs",
-  "author": "SAM CLI",
-  "license": "MIT",
   "scripts": {
     "unit": "jest",
     "lint": "eslint '*.ts' --quiet --fix",
-    "compile": "tsc",
-    "test": "npm run compile && npm run unit"
+    "compile": "tsc"
   },
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.342.0",
-    "@aws-sdk/client-s3": "^3.345.0",
-    "@aws-sdk/lib-dynamodb": "^3.342.0",
     "esbuild": "^0.14.14"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.92",
-    "@types/jest": "^29.2.0",
     "@types/node": "^18.11.4",
     "@typescript-eslint/eslint-plugin": "^5.10.2",
     "@typescript-eslint/parser": "^5.10.2",
