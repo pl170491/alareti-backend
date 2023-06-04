@@ -25,8 +25,43 @@ Globals:
 Resources:
   WikiArtifactBucket:
     Type: AWS::S3::Bucket
-  WikiRepoCreatedTable:
-    Type: AWS::Serverless::SimpleTable
+  WikiArticleCreatedTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+  CreateS3WikiArticleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3-repo-create
+      Handler: app.lambdaHandler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      Events:
+        DDBEvent:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt WikiArticleCreatedTable.StreamArn
+            StartingPosition: TRIM_HORIZON
+      Environment:
+        Variables:
+          WIKI_ARTIFACT_BUCKET_NAME: !Ref WikiArtifactBucket
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+          - app.ts
   WebhookFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -45,12 +80,12 @@ Resources:
             Method: post
       Environment:
         Variables:
-          WIKI_REPO_CREATED_TABLE_NAME: !Ref WikiRepoCreatedTable
+          WIKI_REPO_CREATED_TABLE_NAME: !Ref WikiArticleCreatedTable
           WIKI_URL: !FindInMap [env, url, wikiUrl]
-          WIKI_ARTIFACT_BUCKET_NAME: !Ref WikiArtifactBucket
+          # WIKI_ARTIFACT_BUCKET_NAME: !Ref WikiArtifactBucket
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref WikiRepoCreatedTable
+            TableName: !Ref WikiArticleCreatedTable
         - S3CrudPolicy:
             BucketName: !Ref WikiArtifactBucket
     Metadata: # Manage esbuild properties

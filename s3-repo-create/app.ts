@@ -1,7 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'; // ES Modules import
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
-// import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
 /**
  *
@@ -18,22 +16,10 @@ export const lambdaHandler = async (
 ): Promise<APIGatewayProxyResult> => {
   console.log(JSON.stringify(event));
 
-  let repoUuid = '';
-  let gitLink = '';
+  // let repoUuid = '';
+  // let gitLink = '';
   if (event.body) {
     console.log(JSON.parse(event.body));
-    repoUuid = JSON.parse(event.body).repository.name;
-    gitLink = JSON.parse(event.body).repository.url;
-  } else {
-    return {
-      statusCode: 500,
-      body: '',
-    };
-  }
-
-  let wikiUrl = '';
-  if (process.env.WIKI_URL) {
-    wikiUrl = process.env.WIKI_URL;
   } else {
     return {
       statusCode: 500,
@@ -51,23 +37,8 @@ export const lambdaHandler = async (
   //   };
   // }
 
-  console.log(repoUuid);
-  console.log(JSON.stringify(process.env.WIKI_REPO_CREATED_TABLE_NAME));
-
-  const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
-  const command = new PutCommand({
-    TableName: process.env.WIKI_REPO_CREATED_TABLE_NAME,
-    Item: {
-      id: repoUuid,
-      data: {
-        gitlink: gitLink,
-        permalink: wikiUrl + '/' + repoUuid,
-        titelink: '',
-      },
-    },
-  });
-  const response = await docClient.send(command);
-  console.log(JSON.stringify(response));
+  // console.log(repoUuid);
+  // console.log(JSON.stringify(process.env.WIKI_REPO_CREATED_TABLE_NAME));
 
   // const s3Client = new S3Client({});
   // const putInput = {
