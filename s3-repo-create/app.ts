@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { DynamoDBStreamEvent } from 'aws-lambda';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
 /**
@@ -11,21 +11,33 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
  *
  */
 
-export const lambdaHandler = async (
-  event: APIGatewayProxyEvent,
-): Promise<APIGatewayProxyResult> => {
+function jsonHelper(object: any, target: string[]) {
+  let objectArray: any[];
+  for (const key of target) {
+    if (object.isArray) {
+      objectArray = object;
+    } else {
+      objectArray = [object];
+    }
+    objectArray = objectArray
+      .map((object) => {
+        if (!object[key]) {
+          return undefined;
+        } else {
+          object[key];
+        }
+      })
+      .filter((object) => {
+        object != undefined;
+      });
+  }
+}
+
+export const lambdaHandler = async (event: DynamoDBStreamEvent) => {
   console.log(JSON.stringify(event));
 
-  // let repoUuid = '';
-  // let gitLink = '';
-  if (event.body) {
-    console.log(JSON.parse(event.body));
-  } else {
-    return {
-      statusCode: 500,
-      body: '',
-    };
-  }
+  let repoUuid = '';
+  const records = event.Records[0].dynamodb;
 
   // let s3Name = '';
   // if (process.env.WIKI_ARTIFACT_BUCKET_NAME) {
@@ -49,9 +61,4 @@ export const lambdaHandler = async (
   // const putCommand = new PutObjectCommand(putInput);
   // const putResponse = await s3Client.send(putCommand);
   // console.log(JSON.stringify(putResponse));
-
-  return {
-    statusCode: 200,
-    body: '',
-  };
 };
