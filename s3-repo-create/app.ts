@@ -11,54 +11,63 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
  *
  */
 
+// Gotta learn more about types for this
 function jsonHelper(object: any, target: string[]) {
-  let objectArray: any[];
+  let objectArray: any[] = [];
+  if (!Array.isArray(object)) {
+    objectArray = [object];
+  } else {
+    objectArray = object;
+  }
+
   for (const key of target) {
-    if (object.isArray) {
-      objectArray = object;
-    } else {
-      objectArray = [object];
-    }
     objectArray = objectArray
       .map((object) => {
         if (!object[key]) {
           return undefined;
         } else {
-          object[key];
+          return object[key];
         }
       })
       .filter((object) => {
-        object != undefined;
-      });
+        return object != undefined;
+      })
+      .flat();
   }
+  return objectArray;
 }
 
 export const lambdaHandler = async (event: DynamoDBStreamEvent) => {
   console.log(JSON.stringify(event));
 
-  let repoUuid = '';
-  const records = event.Records[0].dynamodb;
+  let s3Name = '';
+  if (process.env.WIKI_ARTIFACT_BUCKET_NAME) {
+    s3Name = process.env.WIKI_ARTIFACT_BUCKET_NAME;
+  } else {
+    return {
+      statusCode: 500,
+      body: '',
+    };
+  }
 
-  // let s3Name = '';
-  // if (process.env.WIKI_ARTIFACT_BUCKET_NAME) {
-  //   s3Name = process.env.WIKI_ARTIFACT_BUCKET_NAME;
-  // } else {
-  //   return {
-  //     statusCode: 500,
-  //     body: '',
-  //   };
-  // }
+  const repoUuids = jsonHelper(event, [
+    'Records',
+    'dynamodb',
+    'Keys',
+    'id',
+    'S',
+  ]);
 
-  // console.log(repoUuid);
-  // console.log(JSON.stringify(process.env.WIKI_REPO_CREATED_TABLE_NAME));
+  const s3Client = new S3Client({});
+  for (const repoUuid of repoUuids) {
+    const putInput = {
+      Bucket: s3Name,
+      Key: repoUuid + '/',
+      ContentLength: 0,
+    };
 
-  // const s3Client = new S3Client({});
-  // const putInput = {
-  //   Bucket: s3Name,
-  //   Key: repoUuid + '/',
-  //   ContentLength: 0,
-  // };
-  // const putCommand = new PutObjectCommand(putInput);
-  // const putResponse = await s3Client.send(putCommand);
-  // console.log(JSON.stringify(putResponse));
+    const putCommand = new PutObjectCommand(putInput);
+    const putResponse = await s3Client.send(putCommand);
+    console.log(JSON.stringify(putResponse));
+  }
 };

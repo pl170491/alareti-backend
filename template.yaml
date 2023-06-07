@@ -54,6 +54,9 @@ Resources:
       Environment:
         Variables:
           WIKI_ARTIFACT_BUCKET_NAME: !Ref WikiArtifactBucket
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref WikiArtifactBucket
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
