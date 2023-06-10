@@ -147,9 +147,15 @@ Resources:
           Properties:
             Path: /wiki/{article}
             Method: get
+      Environment:
+        Variables:
+          WIKI_ARTIFACT_BUCKET_NAME: !Ref WikiArtifactBucket
+          WIKI_REPO_CREATED_TABLE_NAME: !Ref WikiArticleCreatedTable
       Policies:
-        - AWSSecretsManagerGetSecretValuePolicy:
-            SecretArn: arn:aws:secretsmanager:us-east-2:412300612718:secret:alareti-githubapp-EAm75b
+        - S3ReadPolicy:
+            BucketName: !Ref WikiArtifactBucket
+        - DynamoDBReadPolicy:
+            TableName: !Ref WikiArticleCreatedTable
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:

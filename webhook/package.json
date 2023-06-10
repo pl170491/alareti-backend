@@ -13,9 +13,9 @@
     "test": "npm run compile && npm run unit"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.342.0",
+    "@aws-sdk/client-dynamodb": "^3.350.0",
     "@aws-sdk/client-s3": "^3.345.0",
-    "@aws-sdk/lib-dynamodb": "^3.342.0",
+    "@aws-sdk/lib-dynamodb": "^3.350.0",
     "esbuild": "^0.14.14"
   },
   "devDependencies": {

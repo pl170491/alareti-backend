@@ -14,12 +14,14 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.345.0",
-    "esbuild": "^0.14.14"
+    "@aws-sdk/types": "^3.347.0",
+    "esbuild": "^0.14.14",
+    "save-dev": "^0.0.1-security"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.92",
     "@types/jest": "^29.2.0",
-    "@types/node": "^18.11.4",
+    "@types/node": "^18.16.17",
     "@typescript-eslint/eslint-plugin": "^5.10.2",
     "@typescript-eslint/parser": "^5.10.2",
     "eslint": "^8.8.0",
