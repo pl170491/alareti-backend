@@ -131,10 +131,10 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - app.ts
-  DeleteWikiArticleFunction:
+  ReadWikiArticleFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: wiki-article-delete
+      CodeUri: wiki-article-read
       Handler: app.lambdaHandler
       Runtime: nodejs18.x
       # Layers:
@@ -142,16 +142,11 @@ Resources:
       Architectures:
         - x86_64
       Events:
-        DeleteWikiArticleDelete:
+        ReadWikiArticleGet:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /wiki/{article}
-            Method: delete
-        DeleteWikiArticleOptions:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-          Properties:
-            Path: /wiki/{article}
-            Method: options
+            Method: get
       Policies:
         - AWSSecretsManagerGetSecretValuePolicy:
             SecretArn: arn:aws:secretsmanager:us-east-2:412300612718:secret:alareti-githubapp-EAm75b
@@ -163,6 +158,38 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - app.ts
+  # DeleteWikiArticleFunction:
+  #   Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  #   Properties:
+  #     CodeUri: wiki-article-delete
+  #     Handler: app.lambdaHandler
+  #     Runtime: nodejs18.x
+  #     # Layers:
+  #     #   - arn:aws:lambda:us-east-2:590474943231:layer:AWS-Parameters-and-Secrets-Lambda-Extension:4
+  #     Architectures:
+  #       - x86_64
+  #     Events:
+  #       DeleteWikiArticleDelete:
+  #         Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+  #         Properties:
+  #           Path: /wiki/{article}
+  #           Method: delete
+  #       DeleteWikiArticleOptions:
+  #         Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+  #         Properties:
+  #           Path: /wiki/{article}
+  #           Method: options
+  #     Policies:
+  #       - AWSSecretsManagerGetSecretValuePolicy:
+  #           SecretArn: arn:aws:secretsmanager:us-east-2:412300612718:secret:alareti-githubapp-EAm75b
+  #   Metadata: # Manage esbuild properties
+  #     BuildMethod: esbuild
+  #     BuildProperties:
+  #       Minify: true
+  #       Target: "es2020"
+  #       Sourcemap: true
+  #       EntryPoints:
+  #         - app.ts
 # Outputs:
 # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
 # Find out more about other implicit resources you can reference within SAM

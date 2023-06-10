@@ -52,7 +52,6 @@ export const lambdaHandler = async (
       privateKey: secret,
     });
 
-    console.log('Here I am');
     const octokit = await app.getInstallationOctokit(38017192);
 
     const githubResponse = await octokit.rest.repos.createInOrg({
